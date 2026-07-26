@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Separador de PDF Profissional</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PDF.js para leitura e renderização -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- pdf-lib para manipulação e divisão de PDFs -->
+    <script src="https://unpkg.com/pdf-lib@1.4.0/dist/pdf-lib.min.js"></script>
+    <!-- JSZip para compactação -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- FileSaver para download do ZIP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- Cabeçalho -->
+    <header class="w-full py-6 px-8 border-b border-slate-800 bg-slate-950/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-file-pdf text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">PDF Splitter Pro</h1>
+                    <p class="text-xs text-slate-400">Separe páginas em lote com segurança local</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="max-w-5xl w-full mx-auto p-6 md:p-8 flex-grow flex flex-col items-center justify-center">
+
+        <!-- Área de Upload -->
+        <div id="upload-container" class="w-full max-w-2xl border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-3xl p-10 text-center bg-slate-800/40 backdrop-blur transition-all cursor-pointer group shadow-xl">
+            <input type="file" id="pdf-file" accept="application/pdf" class="hidden">
+            <div class="w-20 h-20 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-cloud-arrow-up text-3xl"></i>
+            </div>
+            <h2 class="text-lg font-semibold text-slate-200 mb-1">Arraste seu PDF aqui ou clique para selecionar</h2>
+            <p class="text-sm text-slate-400 mb-4">O processamento é feito 100% no seu navegador</p>
+            <span class="inline-block bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-5 py-2.5 rounded-xl shadow-md transition-colors">
+                Procurar Arquivo
+            </span>
+        </div>
+
+        <!-- Painel de Configuração (Oculto inicialmente) -->
+        <div id="config-panel" class="w-full max-w-4xl bg-slate-800/60 border border-slate-700/60 rounded-3xl p-6 md:p-8 shadow-2xl hidden mt-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between pb-6 border-b border-slate-700 gap-4">
+                <div>
+                    <h3 id="file-name" class="text-lg font-bold text-white truncate max-w-md">documento.pdf</h3>
+                    <p id="file-info" class="text-sm text-slate-400">Carregando páginas...</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <button id="change-file-btn" class="text-xs text-slate-400 hover:text-white px-3 py-1.5 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition">
+                        Trocar Arquivo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Opções de Exportação -->
+            <div class="py-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Formato de Saída</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="cursor-pointer border border-slate-700 bg-slate-900/40 rounded-xl p-3 flex items-center space-x-3 hover:border-indigo-500 transition has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-600/10">
+                            <input type="radio" name="output-format" value="pdf" checked class="text-indigo-600 focus:ring-indigo-500">
+                            <div>
+                                <span class="block text-sm font-semibold text-white">PDFs Separados</span>
+                                <span class="block text-xs text-slate-400">Cada página vira um PDF</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer border border-slate-700 bg-slate-900/40 rounded-xl p-3 flex items-center space-x-3 hover:border-indigo-500 transition has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-600/10">
+                            <input type="radio" name="output-format" value="jpeg" class="text-indigo-600 focus:ring-indigo-500">
+                            <div>
+                                <span class="block text-sm font-semibold text-white">Imagens JPEG</span>
+                                <span class="block text-xs text-slate-400">Cada página vira uma foto</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex flex-col justify-end">
+                    <button id="download-zip-btn" class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-file-zipper"></i>
+                        <span>Baixar Todas as Páginas em ZIP</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Barra de Progresso (Oculta por padrão) -->
+            <div id="progress-container" class="hidden mt-4 bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                <div class="flex justify-between text-sm mb-1 text-slate-300">
+                    <span id="progress-text">Processando páginas...</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                    <div id="progress-bar" class="bg-indigo-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Grid de Pré-visualização -->
+            <div class="mt-6">
+                <h4 class="text-sm font-medium text-slate-300 mb-3">Pré-visualização das Páginas</h4>
+                <div id="pages-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 max-h-72 overflow-y-auto p-2 border border-slate-700/50 rounded-2xl bg-slate-900/40">
+                    <!-- Miniaturas injetadas via JS -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="w-full py-4 text-center text-xs text-slate-500 border-t border-slate-800/80">
+        Desenvolvido para máxima eficiência e privacidade. Seus arquivos nunca saem do seu computador.
+    </footer>
+
+    <!-- Lógica JavaScript -->
+    <script>
+        const uploadContainer = document.getElementById('upload-container');
+        const fileInput = document.getElementById('pdf-file');
+        const configPanel = document.getElementById('config-panel');
+        const fileNameEl = document.getElementById('file-name');
+        const fileInfoEl = document.getElementById('file-info');
+        const changeFileBtn = document.getElementById('change-file-btn');
+        const pagesGrid = document.getElementById('pages-grid');
+        const downloadZipBtn = document.getElementById('download-zip-btn');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const progressPercent = document.getElementById('progress-percent');
+
+        let pdfArrayBuffer = null;
+        let pdfDocProxy = null;
+        let totalPages = 0;
+        let originalFileName = "";
+
+        // Eventos de clique e arraste para upload
+        uploadContainer.addEventListener('click', () => fileInput.click());
+        uploadContainer.addEventListener('dragover', (e) => { e.preventDefault(); uploadContainer.classList.add('border-indigo-500', 'bg-slate-800/60'); });
+        uploadContainer.addEventListener('dragleave', () => { uploadContainer.classList.remove('border-indigo-500', 'bg-slate-800/60'); });
+        uploadContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadContainer.classList.remove('border-indigo-500', 'bg-slate-800/60');
+            if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+        changeFileBtn.addEventListener('click', () => {
+            configPanel.classList.add('hidden');
+            uploadContainer.classList.remove('hidden');
+            fileInput.value = '';
+        });
+
+        async function handleFile(file) {
+            if (file.type !== 'application/pdf') {
+                alert('Por favor, envie um arquivo PDF válido.');
+                return;
+            }
+
+            originalFileName = file.name.replace(/\.[^/.]+$/, "");
+            fileNameEl.textContent = file.name;
+            fileInfoEl.textContent = 'Lendo arquivo PDF...';
+
+            uploadContainer.classList.add('hidden');
+            configPanel.classList.remove('hidden');
+            pagesGrid.innerHTML = '';
+
+            try {
+                pdfArrayBuffer = await file.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: pdfArrayBuffer });
+                pdfDocProxy = await loadingTask.promise;
+                totalPages = pdfDocProxy.numPages;
+
+                fileInfoEl.textContent = `${totalPages} página(s) detectada(s)`;
+
+                // Renderizar miniaturas
+                for (let i = 1; i <= totalPages; i++) {
+                    await renderThumbnail(i);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Erro ao carregar o arquivo PDF. O arquivo pode estar corrompido ou protegido.');
+                changeFileBtn.click();
+            }
+        }
+
+        async function renderThumbnail(pageNum) {
+            const page = await pdfDocProxy.getPage(pageNum);
+            const viewport = page.getViewport({ scale: 0.3 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+            const card = document.createElement('div');
+            card.className = "relative bg-slate-800 rounded-xl overflow-hidden border border-slate-700/80 group flex flex-col items-center p-2 shadow";
+            
+            const img = document.createElement('img');
+            img.src = canvas.toDataURL();
+            img.className = "rounded-lg shadow w-full object-contain h-28 bg-slate-900";
+
+            const badge = document.createElement('span');
+            badge.className = "mt-2 text-xs font-semibold text-slate-400";
+            badge.textContent = `Página ${pageNum}`;
+
+            card.appendChild(img);
+            card.appendChild(badge);
+            pagesGrid.appendChild(card);
+        }
+
+        // Processamento e geração do ZIP
+        downloadZipBtn.addEventListener('click', async () => {
+            if (!pdfArrayBuffer || !pdfDocProxy) return;
+
+            const format = document.querySelector('input[name="output-format"]:checked').value;
+            downloadZipBtn.disabled = true;
+            progressContainer.classList.remove('hidden');
+
+            try {
+                const zip = new JSZip();
+                
+                if (format === 'pdf') {
+                    // Usando pdf-lib para separar em arquivos PDF individuais
+                    const pdfDoc = await PDFLib.PDFDocument.load(pdfArrayBuffer);
+
+                    for (let i = 0; i < totalPages; i++) {
+                        updateProgress(i + 1, totalPages, 'Gerando arquivos PDF...');
+                        
+                        const subPdf = await PDFLib.PDFDocument.create();
+                        const [copiedPage] = await subPdf.copyPages(pdfDoc, [i]);
+                        subPdf.addPage(copiedPage);
+                        
+                        const pdfBytes = await subPdf.save();
+                        const paddedNum = String(i + 1).padStart(3, '0');
+                        zip.file(`${originalFileName}_pagina_${paddedNum}.pdf`, pdfBytes);
+                    }
+                } else {
+                    // Usando pdf.js para converter cada página em JPEG
+                    for (let i = 1; i <= totalPages; i++) {
+                        updateProgress(i, totalPages, 'Convertendo em imagens JPEG...');
+                        
+                        const page = await pdfDocProxy.getPage(i);
+                        const viewport = page.getViewport({ scale: 1.5 }); // Escala nítida para imagem
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+
+                        await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+                        // Converter canvas para Blob JPEG
+                        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+                        const paddedNum = String(i).padStart(3, '0');
+                        zip.file(`${originalFileName}_pagina_${paddedNum}.jpg`, blob);
+                    }
+                }
+
+                updateProgress(totalPages, totalPages, 'Compactando em ZIP...');
+                const content = await zip.generateAsync({ type: 'blob' }, (metadata) => {
+                    updateProgress(metadata.percent, 100, 'Compactando arquivo ZIP...');
+                });
+
+                // Salvar arquivo usando FileSaver
+                saveAs(content, `${originalFileName}_paginas_separadas.zip`);
+                
+                progressContainer.classList.add('hidden');
+                downloadZipBtn.disabled = false;
+
+            } catch (error) {
+                console.error(error);
+                alert('Ocorreu um erro durante o processamento.');
+                progressContainer.classList.add('hidden');
+                downloadZipBtn.disabled = false;
+            }
+        });
+
+        function updateProgress(current, total, text) {
+            let percent = total === 100 ? current : Math.round((current / total) * 100);
+            if (percent > 100) percent = 100;
+            progressBar.style.width = `${percent}%`;
+            progressPercent.textContent = `${percent}%`;
+            progressText.textContent = `${text} (${current}/${total})`;
+        }
+    </script>
+</body>
+</html>
