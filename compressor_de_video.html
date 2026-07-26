@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compressor de Vídeo Local</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e2e;
+            color: #cdd6f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #313244;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        button, input::file-selector-button {
+            background-color: #89b4fa;
+            color: #11111b;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        button:hover, input::file-selector-button:hover {
+            background-color: #74c7ec;
+        }
+        #message {
+            margin-top: 20px;
+            font-style: italic;
+            color: #f9e2af;
+        }
+        video {
+            margin-top: 20px;
+            max-width: 100%;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+    <!-- Importando o motor do FFmpeg para o navegador -->
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.0/dist/ffmpeg.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Compressor de Vídeo 100% Local</h2>
+        <p>Tudo é processado no seu PC. Nada é enviado para a internet.</p>
+        
+        <input type="file" id="uploader" accept="video/*">
+        <br>
+        <button id="compressBtn">Comprimir Vídeo</button>
+        
+        <p id="message"></p>
+        <video id="output-video" controls></video>
+    </div>
+
+    <script>
+        const { createFFmpeg, fetchFile } = FFmpeg;
+        // Configurando o motor do FFmpeg
+        const ffmpeg = createFFmpeg({ 
+            log: true,
+            corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
+        });
+
+        const compressBtn = document.getElementById('compressBtn');
+        const message = document.getElementById('message');
+        const uploader = document.getElementById('uploader');
+        const video = document.getElementById('output-video');
+
+        const transcode = async () => {
+            const { files } = uploader;
+            if (files.length === 0) {
+                message.innerHTML = '⚠️ Por favor, selecione um vídeo primeiro.';
+                return;
+            }
+
+            const file = files[0];
+            const name = file.name;
+
+            // 1. Carregar o motor do FFmpeg
+            message.innerHTML = 'Carregando o motor de compressão...';
+            compressBtn.disabled = true;
+            if (!ffmpeg.isLoaded()) {
+                await ffmpeg.load();
+            }
+
+            // 2. Colocar o vídeo na "memória" do navegador
+            message.innerHTML = 'Lendo arquivo...';
+            ffmpeg.FS('writeFile', name, await fetchFile(file));
+
+            // 3. Executar o comando de compressão
+            // Reduz para 720p (-vf scale=-2:720) e diminui a taxa de bits (-b:v 1000k)
+            message.innerHTML = 'Comprimindo vídeo... (Isso usa bastante CPU e pode demorar dependendo do tamanho)';
+            await ffmpeg.run('-i', name, '-vf', 'scale=-2:720', '-b:v', '1000k', 'output.mp4');
+
+            // 4. Pegar o arquivo final e disponibilizar para download
+            message.innerHTML = 'Finalizando arquivo...';
+            const data = ffmpeg.FS('readFile', 'output.mp4');
+
+            const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+            
+            video.src = url;
+            video.style.display = 'block';
+            
+            message.innerHTML = '✅ Compressão concluída! Você pode assistir acima, ou <b>clique com o botão direito no vídeo e vá em "Salvar vídeo como..."</b> para baixar.';
+            compressBtn.disabled = false;
+        }
+
+        compressBtn.addEventListener('click', transcode);
+    </script>
+</body>
+</html>
