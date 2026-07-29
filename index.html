@@ -3,55 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Central de Ferramentas Web</title>
+    <title>Central de Ferramentas | edhumanas</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
 
     <!-- Cabeçalho -->
-    <header class="w-full py-8 px-8 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
+    <header class="w-full py-10 px-8 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-lg sticky top-0 z-50 shadow-lg shadow-black/20">
         <div class="max-w-6xl mx-auto flex items-center justify-center text-center flex-col">
-            <div class="bg-indigo-600 text-white p-3 rounded-2xl shadow-lg shadow-indigo-500/30 mb-4 inline-block">
+            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-4 rounded-2xl shadow-lg shadow-indigo-500/30 mb-4 inline-flex items-center justify-center">
                 <i class="fa-solid fa-toolbox text-3xl"></i>
             </div>
-            <h1 class="text-3xl font-bold tracking-tight">Central de Ferramentas</h1>
-            <p class="text-sm text-slate-400 mt-2">Utilitários locais. Rápido, seguro e sem envio de dados para a nuvem.</p>
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-100 to-slate-400">
+                Central de Ferramentas <span class="text-indigo-400 font-medium">| edhumanas</span>
+            </h1>
+            <p class="text-sm md:text-base text-slate-400 mt-3 font-light">Utilitários locais. Rápido, seguro e sem envio de dados para a nuvem.</p>
         </div>
     </header>
 
     <!-- Conteúdo Principal -->
-    <main class="max-w-6xl w-full mx-auto p-6 md:p-12 flex-grow">
+    <main class="max-w-7xl w-full mx-auto p-6 md:p-12 flex-grow">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Grid de 4 colunas em telas grandes e 2 em médias -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
 
             <!-- Card 1: Separador de PDF -->
-            <a href="separador_pdf.html" class="group block p-6 bg-slate-800/40 border border-slate-700 hover:border-red-500 rounded-3xl transition-all hover:bg-slate-800 hover:shadow-xl hover:-translate-y-1">
-                <div class="w-14 h-14 bg-red-500/10 text-red-400 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-red-500 group-hover:text-white transition-colors">
-                    <i class="fa-solid fa-file-pdf text-2xl"></i>
+            <a href="separador_pdf.html" class="group flex flex-col justify-between p-6 bg-slate-800/40 border border-slate-700 hover:border-red-500 rounded-3xl transition-all duration-300 hover:bg-slate-800/80 hover:shadow-2xl hover:shadow-red-500/10 hover:-translate-y-2">
+                <div>
+                    <div class="w-14 h-14 bg-red-500/10 text-red-400 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-red-500 group-hover:text-white transition-colors duration-300">
+                        <i class="fa-solid fa-file-pdf text-2xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-100 mb-2">Separador de PDF</h2>
+                    <p class="text-sm text-slate-400 mb-6 line-clamp-3">Divida arquivos PDF em páginas individuais ou converta cada página em uma imagem JPEG de alta qualidade.</p>
                 </div>
-                <h2 class="text-xl font-bold text-slate-100 mb-2">Separador de PDF</h2>
-                <p class="text-sm text-slate-400">Divida arquivos PDF em páginas individuais ou converta cada página em uma imagem JPEG de alta qualidade.</p>
+                <span class="inline-flex items-center justify-center w-full py-3 px-4 bg-slate-700/50 text-slate-200 font-medium rounded-xl group-hover:bg-red-500 group-hover:text-white transition-all duration-300">
+                    Acessar <i class="fa-solid fa-arrow-right ml-2 text-sm"></i>
+                </span>
             </a>
 
             <!-- Card 2: Compressor de Vídeo -->
-            <a href="compressor_video.html" class="group block p-6 bg-slate-800/40 border border-slate-700 hover:border-blue-500 rounded-3xl transition-all hover:bg-slate-800 hover:shadow-xl hover:-translate-y-1">
-                <div class="w-14 h-14 bg-blue-500/10 text-blue-400 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                    <i class="fa-solid fa-file-video text-2xl"></i>
+            <a href="compressor_video.html" class="group flex flex-col justify-between p-6 bg-slate-800/40 border border-slate-700 hover:border-blue-500 rounded-3xl transition-all duration-300 hover:bg-slate-800/80 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-2">
+                <div>
+                    <div class="w-14 h-14 bg-blue-500/10 text-blue-400 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
+                        <i class="fa-solid fa-file-video text-2xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-100 mb-2">Compressor de Vídeo</h2>
+                    <p class="text-sm text-slate-400 mb-6 line-clamp-3">Reduza o tamanho dos seus vídeos pesados renderizando tudo localmente no seu navegador.</p>
                 </div>
-                <h2 class="text-xl font-bold text-slate-100 mb-2">Compressor de Vídeo</h2>
-                <p class="text-sm text-slate-400">Reduza o tamanho dos seus vídeos pesados renderizando tudo localmente no seu navegador usando WebAssembly.</p>
+                <span class="inline-flex items-center justify-center w-full py-3 px-4 bg-slate-700/50 text-slate-200 font-medium rounded-xl group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                    Acessar <i class="fa-solid fa-arrow-right ml-2 text-sm"></i>
+                </span>
             </a>
 
-            <!-- Card 3: Compressor de Imagem e PDF -->
-            <a href="compressor_imagem.html" class="group block p-6 bg-slate-800/40 border border-slate-700 hover:border-emerald-500 rounded-3xl transition-all hover:bg-slate-800 hover:shadow-xl hover:-translate-y-1">
-                <div class="w-14 h-14 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-                    <i class="fa-solid fa-images text-2xl"></i>
+            <!-- Card 3: Otimizador de Mídia -->
+            <a href="compressor_imagem.html" class="group flex flex-col justify-between p-6 bg-slate-800/40 border border-slate-700 hover:border-emerald-500 rounded-3xl transition-all duration-300 hover:bg-slate-800/80 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-2">
+                <div>
+                    <div class="w-14 h-14 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300">
+                        <i class="fa-solid fa-photo-film text-2xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-100 mb-2">Otimizador de Mídia</h2>
+                    <p class="text-sm text-slate-400 mb-6 line-clamp-3">Comprima imagens e arquivos PDF para torná-los mais leves para envio web, mantendo a qualidade.</p>
                 </div>
-                <h2 class="text-xl font-bold text-slate-100 mb-2">Otimizador de Mídia</h2>
-                <p class="text-sm text-slate-400">Comprima imagens e arquivos PDF para torná-los mais leves para envio web, mantendo a melhor qualidade possível.</p>
+                <span class="inline-flex items-center justify-center w-full py-3 px-4 bg-slate-700/50 text-slate-200 font-medium rounded-xl group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
+                    Acessar <i class="fa-solid fa-arrow-right ml-2 text-sm"></i>
+                </span>
+            </a>
+
+            <!-- Card 4: NOVO - Conversor de Imagem -->
+            <a href="conversor_imagem.htm" class="group flex flex-col justify-between p-6 bg-slate-800/40 border border-slate-700 hover:border-purple-500 rounded-3xl transition-all duration-300 hover:bg-slate-800/80 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2">
+                <div>
+                    <div class="w-14 h-14 bg-purple-500/10 text-purple-400 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-purple-500 group-hover:text-white transition-colors duration-300">
+                        <i class="fa-solid fa-image text-2xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-100 mb-2">Conversor de Imagem</h2>
+                    <p class="text-sm text-slate-400 mb-6 line-clamp-3">Converta formatos, altere dimensões e ajuste a extensão das suas imagens rapidamente no navegador.</p>
+                </div>
+                <span class="inline-flex items-center justify-center w-full py-3 px-4 bg-slate-700/50 text-slate-200 font-medium rounded-xl group-hover:bg-purple-500 group-hover:text-white transition-all duration-300">
+                    Acessar <i class="fa-solid fa-arrow-right ml-2 text-sm"></i>
+                </span>
             </a>
 
         </div>
@@ -59,8 +91,10 @@
     </main>
 
     <!-- Rodapé -->
-    <footer class="w-full py-6 text-center text-sm text-slate-500 border-t border-slate-800/80">
-        <p>Desenvolvido para máxima privacidade. Todo o processamento é feito no seu hardware.</p>
+    <footer class="w-full py-8 mt-auto text-center border-t border-slate-700/50 bg-slate-900/50">
+        <p class="text-sm text-slate-400 font-light tracking-wide">
+            Desenvolvido para máxima privacidade. <br class="md:hidden">Todo o processamento é feito no seu hardware.
+        </p>
     </footer>
 
 </body>
