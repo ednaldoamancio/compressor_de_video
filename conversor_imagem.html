@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Câmara Escura — Conversor de Imagens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/utif/3.1.0/UTIF.js"></script>
+<style>
+  :root{
+    --ink: #14110e;
+    --tray: #211c17;
+    --tray-edge: #362d24;
+    --paper: #f4ecdb;
+    --paper-dim: #cfc4ac;
+    --safelight: #ff5a36;
+    --safelight-dim: #a83c22;
+    --developer: #3e8c86;
+    --fixer: #d9a441;
+    --danger: #e2523f;
+    --radius: 14px;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin: 0;
+    min-height: 100%;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Inter', sans-serif;
+  }
+
+  body{
+    position: relative;
+    overflow-x: hidden;
+    padding: 0 0 80px;
+  }
+
+  /* ambient safelight glow */
+  .safelight-glow{
+    position: fixed;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140vw;
+    height: 70vh;
+    background: radial-gradient(ellipse at center, rgba(255,90,54,0.16) 0%, rgba(255,90,54,0.05) 40%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: pulse 9s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%, 100% { opacity: 0.75; }
+    50% { opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .safelight-glow{ animation: none; }
+  }
+
+  header, main, footer{
+    position: relative;
+    z-index: 1;
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  header{
+    padding-top: 64px;
+    padding-bottom: 36px;
+    text-align: center;
+  }
+
+  .eyebrow{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--safelight);
+    margin: 0 0 18px;
+  }
+
+  .eyebrow::before{
+    content: '●';
+    margin-right: 8px;
+    font-size: 9px;
+    vertical-align: middle;
+    animation: blink 2.4s ease-in-out infinite;
+  }
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+  @media (prefers-reduced-motion: reduce){ .eyebrow::before{ animation:none; } }
+
+  h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    line-height: 1.08;
+    margin: 0 0 16px;
+    letter-spacing: -0.01em;
+  }
+
+  h1 em{
+    font-style: italic;
+    font-weight: 600;
+    color: var(--safelight);
+  }
+
+  header p{
+    font-size: 16px;
+    color: var(--paper-dim);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ---- tray / drop zone ---- */
+  .tray-wrap{ margin-bottom: 32px; }
+
+  .tray{
+    position: relative;
+    border: 2px dashed var(--tray-edge);
+    background: linear-gradient(180deg, var(--tray) 0%, #191510 100%);
+    border-radius: var(--radius);
+    padding: 48px 24px 34px;
+    text-align: center;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    cursor: pointer;
+  }
+
+  .tray::after{
+    /* liquid surface line at bottom of tray */
+    content: '';
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    bottom: 14px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255,90,54,0.35), transparent);
+    border-radius: 50%;
+  }
+
+  .tray.dragging{
+    border-color: var(--safelight);
+    background: linear-gradient(180deg, #2a1c14 0%, #191510 100%);
+    box-shadow: 0 0 0 4px rgba(255,90,54,0.08), 0 0 40px rgba(255,90,54,0.18);
+  }
+
+  .tray-icon{
+    width: 46px;
+    height: 46px;
+    margin: 0 auto 18px;
+    color: var(--paper-dim);
+  }
+  .tray.dragging .tray-icon{ color: var(--safelight); }
+
+  .tray-title{
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+
+  .tray-sub{
+    font-size: 13.5px;
+    color: var(--paper-dim);
+    margin: 0;
+  }
+
+  .tray-sub button{
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--safelight);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .formats-hint{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: #6b6155;
+    margin-top: 16px;
+  }
+
+  input[type="file"]{ display:none; }
+
+  /* ---- controls ---- */
+  .panel{
+    background: var(--tray);
+    border: 1px solid var(--tray-edge);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    margin-bottom: 28px;
+  }
+
+  .panel-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .panel-label{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--paper-dim);
+  }
+
+  .format-pills{
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pill{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--tray-edge);
+    background: transparent;
+    color: var(--paper-dim);
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+  .pill:hover{ border-color: var(--safelight-dim); color: var(--paper); }
+  .pill.active{
+    background: var(--safelight);
+    border-color: var(--safelight);
+    color: #1a1108;
+    font-weight: 600;
+  }
+
+  .quality-row{
+    margin-top: 18px;
+    display: none;
+    align-items: center;
+    gap: 14px;
+  }
+  .quality-row.visible{ display:flex; }
+
+  .quality-row input[type="range"]{
+    flex: 1;
+    accent-color: var(--safelight);
+  }
+
+  .quality-val{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--paper);
+    width: 42px;
+    text-align: right;
+  }
+
+  .actions{
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 30px 0 40px;
+  }
+
+  .btn{
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 14px 30px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  }
+
+  .btn-primary{
+    background: var(--safelight);
+    color: #1a1108;
+    box-shadow: 0 6px 24px rgba(255,90,54,0.25);
+  }
+  .btn-primary:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 8px 28px rgba(255,90,54,0.35); }
+  .btn-primary:disabled{ opacity: 0.35; cursor: not-allowed; box-shadow:none; }
+
+  .btn-ghost{
+    background: transparent;
+    color: var(--paper-dim);
+    border: 1px solid var(--tray-edge);
+  }
+  .btn-ghost:hover{ color: var(--paper); border-color: var(--paper-dim); }
+
+  /* ---- results / contact sheet ---- */
+  .results-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom: 16px;
+  }
+  .results-head h2{
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin:0;
+  }
+  .results-head span{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--paper-dim);
+  }
+
+  .contact-sheet{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+  }
+
+  .frame{
+    background: var(--tray);
+    border: 1px solid var(--tray-edge);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .frame-image{
+    position: relative;
+    aspect-ratio: 1;
+    background:
+      linear-gradient(45deg, #1c1712 25%, transparent 25%) 0 0/16px 16px,
+      linear-gradient(-45deg, #1c1712 25%, transparent 25%) 0 0/16px 16px,
+      linear-gradient(45deg, transparent 75%, #1c1712 75%) 0 0/16px 16px,
+      linear-gradient(-45deg, transparent 75%, #1c1712 75%) 0 0/16px 16px,
+      #181410;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .frame-image img{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: grayscale(1) brightness(0.6) contrast(0.8);
+    opacity: 0;
+    transition: filter 1.1s ease, opacity 0.5s ease;
+  }
+  .frame-image img.developed{
+    filter: grayscale(0) brightness(1) contrast(1);
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .frame-image img{ transition: opacity 0.3s ease; filter:none; }
+  }
+
+  .frame-image .spinner{
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,90,54,0.25);
+    border-top-color: var(--safelight);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  .frame-image .err{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--danger);
+    padding: 8px;
+    text-align: center;
+  }
+
+  .frame-meta{
+    padding: 10px 12px 12px;
+  }
+
+  .frame-name{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--paper);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+
+  .frame-route{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--paper-dim);
+    margin-bottom: 10px;
+  }
+  .frame-route .arrow{ color: var(--safelight); margin: 0 4px; }
+
+  .frame-download{
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 7px 0;
+    border-radius: 999px;
+    background: var(--developer);
+    color: #0c1a19;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+  }
+  .frame-download:hover{ opacity: 0.85; }
+  .frame-download.disabled{
+    background: var(--tray-edge);
+    color: var(--paper-dim);
+    pointer-events: none;
+  }
+
+  footer{
+    margin-top: 50px;
+    text-align: center;
+  }
+
+  .privacy-note{
+    font-size: 12.5px;
+    color: var(--paper-dim);
+    line-height: 1.6;
+  }
+  .privacy-note strong{ color: var(--fixer); font-weight: 600; }
+
+  @media (max-width: 560px){
+    .panel-row{ flex-direction: column; align-items: flex-start; }
+    header{ padding-top: 44px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="safelight-glow" aria-hidden="true"></div>
+
+<header>
+  <p class="eyebrow">revelação instantânea</p>
+  <h1>Converta imagens<br>na <em>câmara escura</em></h1>
+  <p>Solte fotos em PNG, JPG, WebP, SVG ou TIFF na bandeja e escolha o formato de saída. Tudo é revelado aqui mesmo, no seu navegador.</p>
+</header>
+
+<main>
+
+  <div class="tray-wrap">
+    <div class="tray" id="tray" tabindex="0" role="button" aria-label="Área para soltar ou selecionar imagens">
+      <svg class="tray-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6">
+        <rect x="6" y="10" width="36" height="26" rx="3"/>
+        <circle cx="24" cy="23" r="7"/>
+        <path d="M17 10l2.5-4h9L31 10"/>
+      </svg>
+      <p class="tray-title">Solte suas imagens na bandeja</p>
+      <p class="tray-sub">ou <button type="button" id="browseBtn">escolha os arquivos</button></p>
+      <p class="formats-hint">PNG · JPG · WEBP · SVG · TIFF</p>
+    </div>
+    <input type="file" id="fileInput" multiple accept=".png,.jpg,.jpeg,.webp,.svg,.tif,.tiff,image/png,image/jpeg,image/webp,image/svg+xml,image/tiff">
+  </div>
+
+  <div class="panel">
+    <div class="panel-row">
+      <span class="panel-label">Formato de saída</span>
+      <div class="format-pills" id="formatPills">
+        <button class="pill active" data-format="png">PNG</button>
+        <button class="pill" data-format="jpg">JPG</button>
+        <button class="pill" data-format="webp">WEBP</button>
+      </div>
+    </div>
+    <div class="quality-row" id="qualityRow">
+      <span class="panel-label">Qualidade</span>
+      <input type="range" id="qualitySlider" min="10" max="100" value="90">
+      <span class="quality-val" id="qualityVal">90%</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="convertBtn" disabled>Revelar imagens</button>
+    <button class="btn btn-ghost" id="clearBtn" style="display:none;">Limpar bandeja</button>
+  </div>
+
+  <section id="resultsSection" style="display:none;">
+    <div class="results-head">
+      <h2>Contato</h2>
+      <span id="resultsCount"></span>
+    </div>
+    <div class="contact-sheet" id="contactSheet"></div>
+  </section>
+
+</main>
+
+<footer>
+  <p class="privacy-note"><strong>Sem envios.</strong> Cada conversão acontece localmente, no seu navegador —<br>nenhuma imagem é enviada para qualquer servidor.</p>
+</footer>
+
+<script>
+(function(){
+  const tray = document.getElementById('tray');
+  const fileInput = document.getElementById('fileInput');
+  const browseBtn = document.getElementById('browseBtn');
+  const convertBtn = document.getElementById('convertBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const formatPills = document.getElementById('formatPills');
+  const qualityRow = document.getElementById('qualityRow');
+  const qualitySlider = document.getElementById('qualitySlider');
+  const qualityVal = document.getElementById('qualityVal');
+  const resultsSection = document.getElementById('resultsSection');
+  const contactSheet = document.getElementById('contactSheet');
+  const resultsCount = document.getElementById('resultsCount');
+
+  let queue = []; // {file, id}
+  let targetFormat = 'png';
+  let idCounter = 0;
+
+  const ACCEPTED_EXT = ['png','jpg','jpeg','webp','svg','tif','tiff'];
+
+  function extOf(name){
+    const m = /\.([a-z0-9]+)$/i.exec(name);
+    return m ? m[1].toLowerCase() : '';
+  }
+
+  function isAccepted(file){
+    const ext = extOf(file.name);
+    return ACCEPTED_EXT.includes(ext) || file.type.startsWith('image/');
+  }
+
+  function addFiles(fileList){
+    const incoming = Array.from(fileList).filter(isAccepted);
+    incoming.forEach(file => {
+      queue.push({ file, id: 'f' + (idCounter++) });
+    });
+    updateTrayState();
+  }
+
+  function updateTrayState(){
+    convertBtn.disabled = queue.length === 0;
+    clearBtn.style.display = queue.length ? 'inline-block' : 'none';
+    const sub = tray.querySelector('.tray-sub');
+    if(queue.length){
+      sub.innerHTML = queue.length + (queue.length === 1 ? ' imagem pronta para revelar' : ' imagens prontas para revelar');
+    } else {
+      sub.innerHTML = 'ou <button type="button" id="browseBtn2">escolha os arquivos</button>';
+      const b = document.getElementById('browseBtn2');
+      if(b) b.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+    }
+  }
+
+  // drag & drop
+  ['dragenter','dragover'].forEach(evt => {
+    tray.addEventListener(evt, e => {
+      e.preventDefault(); e.stopPropagation();
+      tray.classList.add('dragging');
+    });
+  });
+  ['dragleave','dragend','drop'].forEach(evt => {
+    tray.addEventListener(evt, e => {
+      e.preventDefault(); e.stopPropagation();
+      tray.classList.remove('dragging');
+    });
+  });
+  tray.addEventListener('drop', e => {
+    if(e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+  });
+  tray.addEventListener('click', (e) => {
+    if(e.target.tagName !== 'BUTTON') fileInput.click();
+  });
+  tray.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileInput.click(); }
+  });
+  browseBtn.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+  fileInput.addEventListener('change', () => {
+    addFiles(fileInput.files);
+    fileInput.value = '';
+  });
+
+  // prevent browser from opening dropped files outside the tray
+  ['dragover','drop'].forEach(evt => {
+    window.addEventListener(evt, e => { e.preventDefault(); });
+  });
+
+  clearBtn.addEventListener('click', () => {
+    queue = [];
+    updateTrayState();
+    resultsSection.style.display = 'none';
+    contactSheet.innerHTML = '';
+  });
+
+  // format pills
+  formatPills.addEventListener('click', (e) => {
+    const btn = e.target.closest('.pill');
+    if(!btn) return;
+    formatPills.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    targetFormat = btn.dataset.format;
+    qualityRow.classList.toggle('visible', targetFormat === 'jpg' || targetFormat === 'webp');
+  });
+
+  qualitySlider.addEventListener('input', () => {
+    qualityVal.textContent = qualitySlider.value + '%';
+  });
+
+  function mimeFor(fmt){
+    if(fmt === 'jpg') return 'image/jpeg';
+    if(fmt === 'webp') return 'image/webp';
+    return 'image/png';
+  }
+
+  function baseName(name){
+    const i = name.lastIndexOf('.');
+    return i > -1 ? name.slice(0, i) : name;
+  }
+
+  function readAsArrayBuffer(file){
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+      r.readAsArrayBuffer(file);
+    });
+  }
+
+  function readAsText(file){
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+      r.readAsText(file);
+    });
+  }
+
+  function loadImageFromURL(url){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Falha ao carregar imagem'));
+      img.src = url;
+    });
+  }
+
+  function parseSvgSize(svgText){
+    try {
+      const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+      const svg = doc.documentElement;
+      let w = parseFloat(svg.getAttribute('width'));
+      let h = parseFloat(svg.getAttribute('height'));
+      if((!w || !h) && svg.getAttribute('viewBox')){
+        const parts = svg.getAttribute('viewBox').trim().split(/[\s,]+/).map(Number);
+        if(parts.length === 4){ w = w || parts[2]; h = h || parts[3]; }
+      }
+      return { w: w || 1024, h: h || 1024 };
+    } catch(e){
+      return { w: 1024, h: 1024 };
+    }
+  }
+
+  async function decodeToCanvas(file){
+    const ext = extOf(file.name);
+    const isTiff = ext === 'tif' || ext === 'tiff' || file.type === 'image/tiff';
+    const isSvg = ext === 'svg' || file.type === 'image/svg+xml';
+
+    if(isTiff){
+      if(typeof UTIF === 'undefined'){
+        throw new Error('Biblioteca TIFF indisponível');
+      }
+      const buffer = await readAsArrayBuffer(file);
+      const ifds = UTIF.decode(buffer);
+      UTIF.decodeImage(buffer, ifds[0]);
+      const rgba = UTIF.toRGBA8(ifds[0]);
+      const w = ifds[0].width, h = ifds[0].height;
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      const imgData = ctx.createImageData(w, h);
+      imgData.data.set(rgba);
+      ctx.putImageData(imgData, 0, 0);
+      return canvas;
+    }
+
+    if(isSvg){
+      const text = await readAsText(file);
+      const size = parseSvgSize(text);
+      const blob = new Blob([text], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      try {
+        const img = await loadImageFromURL(url);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || size.w;
+        canvas.height = img.naturalHeight || size.h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        return canvas;
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    // png, jpg, webp — decode natively
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await loadImageFromURL(url);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      return canvas;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  function canvasToBlob(canvas, mime, quality){
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(blob => {
+        if(blob) resolve(blob); else reject(new Error('Falha ao gerar arquivo'));
+      }, mime, quality);
+    });
+  }
+
+  function formatBytes(bytes){
+    if(bytes < 1024) return bytes + ' B';
+    if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/1024/1024).toFixed(1) + ' MB';
+  }
+
+  function createFrame(item){
+    const ext = extOf(item.file.name).toUpperCase();
+    const frame = document.createElement('div');
+    frame.className = 'frame';
+    frame.innerHTML = `
+      <div class="frame-image" id="img-${item.id}"><div class="spinner"></div></div>
+      <div class="frame-meta">
+        <div class="frame-name" title="${item.file.name}">${item.file.name}</div>
+        <div class="frame-route">${ext || '?'}<span class="arrow">→</span><span id="route-${item.id}">${targetFormat.toUpperCase()}</span></div>
+        <a class="frame-download disabled" id="dl-${item.id}" download>Preparando…</a>
+      </div>
+    `;
+    return frame;
+  }
+
+  async function convertAll(){
+    if(!queue.length) return;
+    convertBtn.disabled = true;
+    convertBtn.textContent = 'Revelando…';
+    resultsSection.style.display = 'block';
+    contactSheet.innerHTML = '';
+    resultsCount.textContent = queue.length + (queue.length === 1 ? ' imagem' : ' imagens');
+
+    const fmt = targetFormat;
+    const mime = mimeFor(fmt);
+    const quality = fmt === 'png' ? undefined : (parseInt(qualitySlider.value, 10) / 100);
+
+    queue.forEach(item => contactSheet.appendChild(createFrame(item)));
+
+    for(const item of queue){
+      const imgSlot = document.getElementById('img-' + item.id);
+      const dl = document.getElementById('dl-' + item.id);
+      try {
+        const canvas = await decodeToCanvas(item.file);
+
+        if(fmt === 'jpg'){
+          // flatten transparency onto white before encoding as JPG
+          const flat = document.createElement('canvas');
+          flat.width = canvas.width; flat.height = canvas.height;
+          const fctx = flat.getContext('2d');
+          fctx.fillStyle = '#ffffff';
+          fctx.fillRect(0, 0, flat.width, flat.height);
+          fctx.drawImage(canvas, 0, 0);
+          var outCanvas = flat;
+        } else {
+          var outCanvas = canvas;
+        }
+
+        const blob = await canvasToBlob(outCanvas, mime, quality);
+        const url = URL.createObjectURL(blob);
+        const outName = baseName(item.file.name) + '.' + fmt;
+
+        imgSlot.innerHTML = `<img src="${url}" alt="${outName}">`;
+        const imgEl = imgSlot.querySelector('img');
+        requestAnimationFrame(() => requestAnimationFrame(() => imgEl.classList.add('developed')));
+
+        dl.href = url;
+        dl.download = outName;
+        dl.textContent = 'Baixar · ' + formatBytes(blob.size);
+        dl.classList.remove('disabled');
+      } catch(err){
+        imgSlot.innerHTML = `<div class="err">${err.message || 'Não foi possível converter'}</div>`;
+        dl.textContent = 'Indisponível';
+      }
+    }
+
+    convertBtn.disabled = false;
+    convertBtn.textContent = 'Revelar imagens';
+  }
+
+  convertBtn.addEventListener('click', convertAll);
+})();
+</script>
+
+</body>
+</html>
